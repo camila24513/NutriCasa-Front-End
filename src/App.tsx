@@ -1,0 +1,205 @@
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
+
+import Home from './pages/Home';
+import Inicio from './pages/profile/Inicio';
+import Login from './pages/Auth/Login';
+import Register from './pages/Auth/Register';
+import ForgotPassword from './pages/Auth/ForgotPassword';
+import VerifyResetCode from './pages/Auth/VerifyResetCode';
+import ResetPassword from './pages/Auth/ResetPassword';
+import Profile from './pages/Auth/Profile';
+import NotFound from './pages/NotFound';
+import ServerError from './pages/ServerError';
+import Sitemap from './pages/Sitemap';
+//Comentario para el push
+import Navbar from './components/Layout/Navbar';
+import Breadcrumbs from './components/Layout/Breadcrumbs';
+import Footer from './components/Layout/Footer';
+
+import Recipes from './pages/recipes/Recipes';
+import RecipeDetail from './pages/recipes/RecipeDetail';
+import RecipeCook from './pages/recipes/RecipeCook';
+import RecipeHistory from './pages/History/History';
+import AiDashboard from './pages/recipes/AiDashboard';
+import Inventory from './pages/Inventory/Inventory';
+import Chatbot from './components/Chatbot/Chatbot';
+
+import MyRecipes from './pages/MyRecipes/MyRecipes';
+import CreateRecipe from './pages/MyRecipes/CreateRecipe';
+
+// 🔐 Rutas privadas
+const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isAuthenticated, loading } = useAuth();
+
+  // Mostrar loading mientras se verifica autenticación
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+      </div>
+    );
+  }
+
+  return isAuthenticated() ? <>{children}</> : <Navigate to="/login" />;
+};
+
+// 🌐 Rutas públicas
+const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isAuthenticated, loading } = useAuth();
+
+  // Mostrar loading mientras se verifica autenticación
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+      </div>
+    );
+  }
+
+  return !isAuthenticated() ? <>{children}</> : <Navigate to="/inicio" />;
+};
+
+const AppContent: React.FC = () => {
+  const { isAuthenticated, loading } = useAuth();
+
+  return (
+    <div className="flex flex-col min-h-screen">
+      <Navbar />
+      <Breadcrumbs />
+
+      <main className="flex-grow">
+        <Routes>
+
+          {/* Pública */}
+          {/* Públicas */}
+          <Route path="/" element={<Home />} />
+
+          <Route path="/login" element={
+            <PublicRoute>
+              <Login />
+            </PublicRoute>
+          } />
+
+          <Route path="/register" element={
+            <PublicRoute>
+              <Register />
+            </PublicRoute>
+          } />
+
+          <Route path="/forgot-password" element={
+            <PublicRoute>
+              <ForgotPassword />
+            </PublicRoute>
+          } />
+
+          <Route path="/verify-reset-code" element={
+            <PublicRoute>
+              <VerifyResetCode />
+            </PublicRoute>
+          } />
+
+          <Route path="/reset-password" element={
+            <PublicRoute>
+              <ResetPassword />
+            </PublicRoute>
+          } />
+
+          {/* Privadas */}
+          <Route path="/inicio" element={
+            <PrivateRoute>
+              <Inicio />
+            </PrivateRoute>
+          } />
+
+          <Route path="/perfil" element={
+            <PrivateRoute>
+              <Profile />
+            </PrivateRoute>
+          } />
+
+          <Route path="/recipes" element={
+            <PrivateRoute>
+              <Recipes />
+            </PrivateRoute>
+          } />
+
+          <Route path="/recipes/:id" element={
+            <PrivateRoute>
+              <RecipeDetail />
+            </PrivateRoute>
+          } />
+
+          <Route path="/recipes/:id/cook" element={
+            <PrivateRoute>
+              <RecipeCook />
+            </PrivateRoute>
+          } />
+
+          <Route path="/ai-dashboard" element={
+            <PrivateRoute>
+              <AiDashboard />
+            </PrivateRoute>
+          } />
+
+          <Route path="/inventory" element={
+            <PrivateRoute>
+              <Inventory />
+            </PrivateRoute>
+          } />
+
+          <Route path="/history" element={
+            <PrivateRoute>
+              <RecipeHistory />
+            </PrivateRoute>
+          } />
+
+          <Route path="/my-recipes" element={
+            <PrivateRoute>
+              <MyRecipes />
+            </PrivateRoute>
+          } />
+
+          <Route path="/create-recipe" element={
+            <PrivateRoute>
+              <CreateRecipe />
+            </PrivateRoute>
+          } />
+
+          <Route path="/edit-recipe/:id" element={
+            <PrivateRoute>
+              <CreateRecipe />
+            </PrivateRoute>
+          } />
+
+          <Route path="/sitemap" element={<Sitemap />} />
+          <Route path="/500" element={<ServerError />} />
+
+          {/* Fallback */}
+          {/* Ruta por defecto si no encuentra la página */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+
+        {/* ✅ CORREGIDO: Usar el contexto en lugar de localStorage */}
+        {!loading && isAuthenticated() && <Chatbot />}
+
+      </main>
+
+      <Footer />
+    </div>
+  );
+};
+
+// 🚀 App principal
+const App: React.FC = () => {
+  return (
+    <Router>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </Router>
+  );
+};
+
+export default App;
